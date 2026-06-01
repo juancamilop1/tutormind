@@ -1,0 +1,256 @@
+@if (!user) {
+  <div class="loading-screen">Cargando TutorMind...</div>
+} @else {
+  @if (backendOnline === false) {
+    <div class="backend-banner">
+      El servidor no está activo. Ejecuta <strong>start-backend.bat</strong> en la carpeta del proyecto y recarga esta página.
+      <button type="button" (click)="checkBackend()">Reintentar</button>
+    </div>
+  }
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo">
+        <span>🧠</span>
+        <span class="logo-text">TutorMind <em>AI</em></span>
+      </div>
+
+      <div class="user-chip">
+        <div class="avatar">{{ getInitials(user.name) }}</div>
+        <div class="user-info">
+          <strong>{{ user.name }}</strong>
+          <span>{{ user.career || 'Estudiante' }}</span>
+        </div>
+      </div>
+      <button type="button" class="logout-btn" (click)="logout()">Cerrar sesión</button>
+
+      <section class="profile-panel">
+        <h3>Tu perfil de aprendizaje</h3>
+        @if (profileService.profile(); as profile) {
+          <span class="badge-style">
+            {{ profileService.getLearningStyleLabel(profile.learning_style) }}
+          </span>
+
+          @if (profile.mastered_topics?.length) {
+            <div class="chips-group">
+              <label>Dominados</label>
+              <div class="chips">
+                @for (t of profile.mastered_topics; track t) {
+                  <span class="chip chip--success">{{ t }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (getInProgressTopics().length) {
+            <div class="chips-group">
+              <label>En progreso</label>
+              <div class="chips">
+                @for (t of getInProgressTopics(); track t) {
+                  <span class="chip chip--warning">{{ t }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="progress-block">
+            <div class="progress-header">
+              <span>Sesiones</span>
+              <span>{{ sessions.length }}</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                [style.width.%]="profileService.getSessionProgress(sessions.length)"
+              ></div>
+            </div>
+          </div>
+        }
+      </section>
+
+      <section class="stats-panel">
+        <h3>Estadísticas</h3>
+        @if (profileService.stats(); as stats) {
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Comprensión</span>
+              <strong>{{ stats.understanding_score }}%</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Sesiones (cuenta)</span>
+              <strong>{{ stats.total_sessions }}</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Mensajes (sesión)</span>
+              <strong>{{ stats.total_messages }}</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Temas dominados</span>
+              <strong>{{ stats.mastered_topics_count }}</strong>
+            </div>
+          </div>
+          <div class="events-row">
+            <span>Entendió: {{ stats.understood_events }}</span>
+            <span>Confusión: {{ stats.confused_events }}</span>
+            <span>Frustración: {{ stats.frustrated_events }}</span>
+          </div>
+        }
+      </section>
+
+      <div class="sessions-list">
+        <h4>Sesiones</h4>
+        @for (s of sessions; track s.id) {
+          <button
+            type="button"
+            class="session-item"
+            [class.active]="s.id === sessionId"
+            (click)="selectSession(s.id)"
+          >
+            <span class="session-row">
+              <span class="session-subject">{{ s.subject }}</span>
+              <span class="session-delete" (click)="deleteSession(s.id, $event)">🗑</span>
+            </span>
+            <span class="session-meta">{{ s.message_count }} msgs</span>
+          </button>
+        }
+        <button type="button" class="new-session" (click)="newSession()">
+          + Nueva sesión
+        </button>
+      </div>
+    </aside>
+
+    <main class="chat-main">
+      <header class="chat-header">
+        <input
+          type="text"
+          class="subject-input"
+          [(ngModel)]="sessionSubject"
+          (blur)="onSubjectBlur()"
+          placeholder="¿Qué vas a estudiar hoy?"
+        />
+        <span class="session-badge">
+          <span class="pulse-dot"></span>
+          Sesión activa
+        </span>
+        <button type="button" class="exam-btn" (click)="generateExam()" [disabled]="examLoading">
+          {{ examLoading ? 'Generando...' : 'Parcial rápido' }}
+        </button>
+      </header>
+
+      @if (exam; as e) {
+        <section class="exam-panel">
+          <h3>{{ e.title }}</h3>
+          <p>{{ e.instructions }}</p>
+          <div class="exam-questions">
+            @for (q of e.questions; track q.id; let qIdx = $index) {
+              <div class="exam-question">
+                <span>{{ q.id }}. {{ q.question }}</span>
+                <div class="exam-options">
+                  @for (opt of q.options; track opt; let optIdx = $index) {
+                    <button
+                      type="button"
+                      class="exam-option"
+                      [class.selected]="examAnswers[qIdx] === optIdx"
+                      [class.correct]="examResults.length && optIdx === q.correct_index"
+                      [class.wrong]="examResults.length && examAnswers[qIdx] === optIdx && optIdx !== q.correct_index"
+                      (click)="chooseExamOption(qIdx, optIdx)"
+                    >
+                      {{ ['A', 'B', 'C', 'D'][optIdx] }}. {{ opt }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          <div class="exam-actions">
+            <button type="button" class="btn-send" (click)="submitExam()" [disabled]="examLoading">
+              {{ examLoading ? 'Evaluando...' : 'Enviar parcial' }}
+            </button>
+            @if (examScore !== null) {
+              <span class="exam-score">Nota: {{ examScore }}/100</span>
+            }
+          </div>
+          @if (examFeedback) {
+            <div class="exam-feedback markdown-body" [innerHTML]="examFeedback | markdownToHtml"></div>
+          }
+        </section>
+      }
+
+      <div class="messages" #messagesContainer>
+        @if (messages.length === 0) {
+          <div class="welcome fade-in-up">
+            <h2>Hola, {{ user.name.split(' ')[0] }} 👋</h2>
+            <p>¿En qué te ayudo hoy? Elige un tema o escribe tu pregunta.</p>
+            <div class="suggestions">
+              @for (s of suggestions; track s) {
+                <button type="button" (click)="useSuggestion(s)">{{ s }}</button>
+              }
+            </div>
+            <div class="quick-actions">
+              @for (a of quickActions; track a) {
+                <button type="button" (click)="triggerQuickAction(a)">{{ a }}</button>
+              }
+            </div>
+          </div>
+        }
+
+        @for (msg of messages; track $index) {
+          <div
+            class="message-row fade-in-up"
+            [class.message-row--user]="msg.role === 'user'"
+            [class.message-row--assistant]="msg.role === 'assistant'"
+          >
+            @if (msg.role === 'assistant') {
+              <div class="msg-avatar">TM</div>
+            }
+            <div class="bubble" [class.bubble--user]="msg.role === 'user'">
+              @if (msg.role === 'assistant') {
+                <div [innerHTML]="msg.content | markdownToHtml"></div>
+                @if (msg.streaming) {
+                  <span class="cursor-blink">▋</span>
+                }
+              } @else {
+                <p>{{ msg.content }}</p>
+              }
+            </div>
+          </div>
+        }
+
+        @if (isTyping) {
+          <div class="message-row message-row--assistant fade-in-up">
+            <div class="msg-avatar">TM</div>
+            <div class="bubble typing-indicator">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <footer class="input-area">
+        <button type="button" class="btn-icon" title="Adjuntar (próximamente)" disabled>
+          📎
+        </button>
+        <textarea
+          #messageInput
+          [(ngModel)]="inputText"
+          (keydown)="onKeydown($event)"
+          (input)="onInput()"
+          placeholder="Escribe tu pregunta... (Enter envía, Shift+Enter nueva línea)"
+          rows="1"
+          [disabled]="loading"
+        ></textarea>
+        <button
+          type="button"
+          class="btn-send"
+          (click)="send()"
+          [disabled]="loading || !inputText.trim()"
+        >
+          @if (loading) {
+            <span class="spinner"></span>
+          } @else {
+            Enviar
+          }
+        </button>
+      </footer>
+    </main>
+  </div>
+}

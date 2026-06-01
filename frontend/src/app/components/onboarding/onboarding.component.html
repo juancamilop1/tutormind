@@ -1,0 +1,62 @@
+<div class="onboarding">
+  <div class="onboarding__card">
+    <div class="logo">
+      <span class="logo__icon">🧠</span>
+      <h1 class="logo__text">TutorMind <span>AI</span></h1>
+    </div>
+    <p class="subtitle">Tu tutor universitario adaptativo</p>
+
+    <div class="mode-switch">
+      <button
+        type="button"
+        [class.active]="mode === 'register'"
+        (click)="setMode('register')"
+      >
+        Crear cuenta
+      </button>
+      <button
+        type="button"
+        [class.active]="mode === 'login'"
+        (click)="setMode('login')"
+      >
+        Iniciar sesión
+      </button>
+    </div>
+
+    <form (ngSubmit)="submit()" class="form">
+      @if (mode === 'register') {
+        <label>
+          <span>Nombre</span>
+          <input type="text" [(ngModel)]="name" name="name" placeholder="Tu nombre" required />
+        </label>
+      }
+      <label>
+        <span>Email</span>
+        <input type="email" [(ngModel)]="email" name="email" placeholder="tu@universidad.edu" required />
+      </label>
+      @if (mode === 'register') {
+        <label>
+          <span>Carrera</span>
+          <input type="text" [(ngModel)]="career" name="career" placeholder="Ej. Ingeniería de Software" />
+        </label>
+        <label>
+          <span>Universidad</span>
+          <input type="text" [(ngModel)]="university" name="university" placeholder="Ej. UNAM" />
+        </label>
+      }
+
+      @if (error) {
+        <p class="error">{{ error }}</p>
+      }
+
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        @if (loading) {
+          <span class="spinner"></span>
+          {{ mode === 'register' ? 'Creando cuenta...' : 'Entrando...' }}
+        } @else {
+          {{ mode === 'register' ? 'Comenzar a aprender' : 'Entrar a TutorMind' }}
+        }
+      </button>
+    </form>
+  </div>
+</div>
