@@ -14,17 +14,34 @@ export class UserService {
   createUser(data: {
     name: string;
     email: string;
+    password: string;
+    role: 'student' | 'teacher';
     career?: string;
     university?: string;
   }): Observable<User> {
     return this.http.post<User>(`${API}/users`, data);
   }
 
-  login(email: string): Observable<User> {
-    return this.http.post<User>(`${API}/users/login`, { email });
+  login(email: string, password: string): Observable<User> {
+    return this.http.post<User>(`${API}/users/login`, { email, password });
   }
 
   getUser(userId: number): Observable<User> {
     return this.http.get<User>(`${API}/users/${userId}`);
+  }
+
+  saveSession(user: User): void {
+    localStorage.setItem('tutormind_user_id', String(user.id));
+    localStorage.setItem('tutormind_user_role', user.role);
+  }
+
+  clearSession(): void {
+    localStorage.removeItem('tutormind_user_id');
+    localStorage.removeItem('tutormind_user_role');
+    localStorage.removeItem('tutormind_session_id');
+  }
+
+  homeRouteForRole(role?: string): string {
+    return role === 'teacher' ? '/profesor' : '/';
   }
 }

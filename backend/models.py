@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -12,6 +12,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=True)
+    role = Column(String(20), default="student", nullable=False)
     career = Column(String(255), nullable=True)
     university = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -21,6 +23,33 @@ class User(Base):
     )
     sessions = relationship("Session", back_populates="user")
     learning_events = relationship("LearningEvent", back_populates="user")
+    students = relationship(
+        "TeacherStudent",
+        foreign_keys="TeacherStudent.teacher_id",
+        back_populates="teacher",
+    )
+    teachers = relationship(
+        "TeacherStudent",
+        foreign_keys="TeacherStudent.student_id",
+        back_populates="student",
+    )
+
+
+class TeacherStudent(Base):
+    __tablename__ = "teacher_students"
+    __table_args__ = (
+        UniqueConstraint("teacher_id", "student_email", name="uq_teacher_student_email"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    student_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    student_email = Column(String(255), nullable=False, index=True)
+    status = Column(String(20), default="pending", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    teacher = relationship("User", foreign_keys=[teacher_id], back_populates="students")
+    student = relationship("User", foreign_keys=[student_id], back_populates="teachers")
 
 
 class CognitiveProfile(Base):

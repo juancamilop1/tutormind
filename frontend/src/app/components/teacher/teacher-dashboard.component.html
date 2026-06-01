@@ -1,0 +1,114 @@
+<div class="teacher-page">
+  <header class="teacher-header">
+    <div>
+      <h1>Panel del profesor</h1>
+      <p>Monitorea cómo aprende cada estudiante, qué temas cubre y si los está entendiendo.</p>
+    </div>
+    <div class="teacher-header__actions">
+      <span class="teacher-chip">{{ user?.name }}</span>
+      <button type="button" class="btn-secondary" (click)="logout()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <section class="add-student">
+    <h2>Agregar estudiante</h2>
+    <form (ngSubmit)="addStudent()" class="add-student__form">
+      <input
+        type="email"
+        [(ngModel)]="studentEmail"
+        name="studentEmail"
+        placeholder="correo@estudiante.edu"
+        required
+      />
+      <button type="submit" [disabled]="adding || !studentEmail.trim()">
+        {{ adding ? 'Agregando...' : 'Agregar por correo' }}
+      </button>
+    </form>
+    @if (error) {
+      <p class="error">{{ error }}</p>
+    }
+  </section>
+
+  @if (loading) {
+    <div class="loading">Cargando estudiantes...</div>
+  } @else if (students.length === 0) {
+    <div class="empty">
+      Aún no tienes estudiantes. Agrégalos por correo; si no tienen cuenta, se vincularán cuando se registren.
+    </div>
+  } @else {
+    <div class="teacher-layout">
+      <aside class="student-list">
+        <h3>Estudiantes ({{ students.length }})</h3>
+        @for (student of students; track student.enrollment_id) {
+          <button
+            type="button"
+            class="student-card"
+            [class.active]="selectedStudent?.enrollment_id === student.enrollment_id"
+            (click)="selectStudent(student)"
+          >
+            <div class="student-card__top">
+              <strong>{{ student.student_name || student.student_email }}</strong>
+              <span class="remove" (click)="removeStudent(student, $event)">✕</span>
+            </div>
+            <span class="student-card__email">{{ student.student_email }}</span>
+            <span class="status-pill status-pill--{{ student.status }}">
+              {{ statusLabel(student.status) }}
+            </span>
+          </button>
+        }
+      </aside>
+
+      @if (selectedStudent; as s) {
+        <main class="student-detail">
+          <div class="detail-header">
+            <div>
+              <h2>{{ s.student_name || 'Estudiante pendiente' }}</h2>
+              <p>{{ s.student_email }}</p>
+            </div>
+            <div class="detail-badges">
+              <span class="badge">{{ s.learning_style_label }}</span>
+              <span class="badge">{{ s.total_sessions }} sesiones</span>
+              <span class="badge">{{ s.total_messages }} mensajes</span>
+            </div>
+          </div>
+
+          <section class="summary-box">
+            <h3>Resumen de aprendizaje</h3>
+            <p>{{ s.learning_summary }}</p>
+          </section>
+
+          <section class="charts-grid">
+            <div class="chart-card">
+              <app-bar-chart title="Señales de aprendizaje" [items]="s.event_bars" />
+            </div>
+          </section>
+
+          <section class="topics-section">
+            <h3>Temas y comprensión</h3>
+            @if (s.topic_insights.length === 0) {
+              <p class="muted">Todavía no hay temas registrados para este estudiante.</p>
+            } @else {
+              <div class="topic-cards">
+                @for (topic of s.topic_insights; track topic.topic) {
+                  <article class="topic-card topic-card--{{ topic.status }}">
+                    <div class="topic-card__head">
+                      <strong>{{ topic.topic }}</strong>
+                      <span>{{ statusLabel(topic.status) }}</span>
+                    </div>
+                    <p>{{ topic.summary }}</p>
+                    <div class="topic-metrics">
+                      <span>Entendió: {{ topic.understood }}</span>
+                      <span>Confusión: {{ topic.confused }}</span>
+                      <span>Frustración: {{ topic.frustrated }}</span>
+                      <span>Dominado: {{ topic.mastered }}</span>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        </main>
+      }
+    </div>
+  }
+</div>

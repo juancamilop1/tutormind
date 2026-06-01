@@ -26,6 +26,13 @@
     <form (ngSubmit)="submit()" class="form">
       @if (mode === 'register') {
         <label>
+          <span>Tipo de cuenta</span>
+          <select [(ngModel)]="role" name="role">
+            <option value="student">Estudiante</option>
+            <option value="teacher">Profesor</option>
+          </select>
+        </label>
+        <label>
           <span>Nombre</span>
           <input type="text" [(ngModel)]="name" name="name" placeholder="Tu nombre" required />
         </label>
@@ -34,7 +41,18 @@
         <span>Email</span>
         <input type="email" [(ngModel)]="email" name="email" placeholder="tu@universidad.edu" required />
       </label>
-      @if (mode === 'register') {
+      <label>
+        <span>Contraseña</span>
+        <input
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Mínimo 6 caracteres"
+          minlength="6"
+          required
+        />
+      </label>
+      @if (mode === 'register' && role === 'student') {
         <label>
           <span>Carrera</span>
           <input type="text" [(ngModel)]="career" name="career" placeholder="Ej. Ingeniería de Software" />
@@ -54,7 +72,7 @@
           <span class="spinner"></span>
           {{ mode === 'register' ? 'Creando cuenta...' : 'Entrando...' }}
         } @else {
-          {{ mode === 'register' ? 'Comenzar a aprender' : 'Entrar a TutorMind' }}
+          {{ mode === 'register' ? 'Comenzar' : 'Entrar a TutorMind' }}
         }
       </button>
     </form>

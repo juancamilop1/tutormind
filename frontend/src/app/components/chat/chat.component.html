@@ -70,29 +70,33 @@
       <section class="stats-panel">
         <h3>Estadísticas</h3>
         @if (profileService.stats(); as stats) {
-          <div class="stats-grid">
-            <div class="stat-card">
-              <span class="stat-label">Comprensión</span>
-              <strong>{{ stats.understanding_score }}%</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Sesiones (cuenta)</span>
-              <strong>{{ stats.total_sessions }}</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Mensajes (sesión)</span>
-              <strong>{{ stats.total_messages }}</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Temas dominados</span>
-              <strong>{{ stats.mastered_topics_count }}</strong>
-            </div>
+          <app-bar-chart title="Señales de aprendizaje" [items]="stats.event_bars" />
+
+          <div class="stats-counts">
+            <span>Sesiones: {{ stats.total_sessions }}</span>
+            <span>Mensajes: {{ stats.total_messages }}</span>
+            <span>Temas dominados: {{ stats.mastered_topics_count }}</span>
           </div>
-          <div class="events-row">
-            <span>Entendió: {{ stats.understood_events }}</span>
-            <span>Confusión: {{ stats.confused_events }}</span>
-            <span>Frustración: {{ stats.frustrated_events }}</span>
+
+          <div class="summary-box">
+            <h4>Resumen</h4>
+            <p>{{ stats.learning_summary }}</p>
           </div>
+
+          @if (stats.topic_insights.length) {
+            <div class="topic-insights">
+              <h4>Temas</h4>
+              @for (topic of stats.topic_insights; track topic.topic) {
+                <div class="topic-insight topic-insight--{{ topic.status }}">
+                  <div class="topic-insight__head">
+                    <strong>{{ topic.topic }}</strong>
+                    <span>{{ statusLabel(topic.status) }}</span>
+                  </div>
+                  <p>{{ topic.summary }}</p>
+                </div>
+              }
+            </div>
+          }
         }
       </section>
 

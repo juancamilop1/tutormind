@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -7,12 +7,15 @@ from pydantic import BaseModel, EmailStr, Field
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
+    role: Literal["student", "teacher"] = "student"
     career: Optional[str] = None
     university: Optional[str] = None
 
 
 class UserLogin(BaseModel):
     email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
 
 
 class CognitiveProfileResponse(BaseModel):
@@ -34,6 +37,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
+    role: str
     career: Optional[str] = None
     university: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -89,6 +93,22 @@ class MessageResponse(BaseModel):
         from_attributes = True
 
 
+class BarChartItem(BaseModel):
+    label: str
+    value: int
+    tone: str = "primary"
+
+
+class TopicInsight(BaseModel):
+    topic: str
+    understood: int
+    confused: int
+    frustrated: int
+    mastered: int
+    status: str
+    summary: str
+
+
 class UserStatsResponse(BaseModel):
     total_sessions: int
     total_messages: int
@@ -98,6 +118,9 @@ class UserStatsResponse(BaseModel):
     frustrated_events: int
     mastered_events: int
     understanding_score: int
+    event_bars: list[BarChartItem]
+    topic_insights: list[TopicInsight]
+    learning_summary: str
 
 
 class ExamQuestion(BaseModel):
@@ -128,3 +151,31 @@ class ExamSubmitResponse(BaseModel):
     score: int
     feedback: str
     results: list[bool]
+
+
+class TeacherAddStudent(BaseModel):
+    email: EmailStr
+
+
+class TeacherStudentResponse(BaseModel):
+    id: int
+    student_id: Optional[int] = None
+    student_email: str
+    student_name: Optional[str] = None
+    status: str
+    created_at: Optional[datetime] = None
+
+
+class StudentOverview(BaseModel):
+    enrollment_id: int
+    student_id: Optional[int] = None
+    student_email: str
+    student_name: Optional[str] = None
+    status: str
+    learning_style: str
+    learning_style_label: str
+    total_sessions: int
+    total_messages: int
+    event_bars: list[BarChartItem]
+    topic_insights: list[TopicInsight]
+    learning_summary: str

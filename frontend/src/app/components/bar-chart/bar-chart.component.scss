@@ -1,0 +1,72 @@
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.bar-chart__title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bar-chart__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.bar-chart__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bar-chart__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.bar-chart__label {
+  color: var(--color-text-muted);
+}
+
+.bar-chart__value {
+  color: var(--color-text);
+  font-size: 0.82rem;
+}
+
+.bar-chart__track {
+  height: 10px;
+  background: var(--color-bg-input);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-chart__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+  min-width: 0;
+}
+
+.bar-chart__fill--success {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.bar-chart__fill--warning {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.bar-chart__fill--danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.bar-chart__fill--primary {
+  background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
+}

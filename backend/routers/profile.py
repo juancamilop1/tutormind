@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from analytics import build_event_bars, build_learning_summary, build_topic_insights
 from database import get_db
 from models import CognitiveProfile, LearningEvent, Message, Session as ChatSession
 from schemas import CognitiveProfileResponse, CognitiveProfileUpdate, UserStatsResponse
@@ -135,6 +136,14 @@ def get_profile_stats(
         max(0, min(100, ((understood_events + mastered_events) / denominator) * 100))
     )
 
+    counts = {
+        "understood": understood_events,
+        "confused": confused_events,
+        "frustrated": frustrated_events,
+        "mastered": mastered_events,
+    }
+    topic_insights = build_topic_insights(db, user_id, profile)
+
     return UserStatsResponse(
         total_sessions=total_sessions,
         total_messages=total_messages,
@@ -144,4 +153,12 @@ def get_profile_stats(
         frustrated_events=frustrated_events,
         mastered_events=mastered_events,
         understanding_score=understanding_score,
+        event_bars=build_event_bars(
+            understood_events,
+            confused_events,
+            frustrated_events,
+            mastered_events,
+        ),
+        topic_insights=topic_insights,
+        learning_summary=build_learning_summary(profile, counts, topic_insights),
     )

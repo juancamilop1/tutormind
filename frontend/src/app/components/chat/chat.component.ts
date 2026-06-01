@@ -9,6 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { BarChartComponent } from '../bar-chart/bar-chart.component';
 import { ChatService } from '../../services/chat.service';
 import { ProfileService } from '../../services/profile.service';
 import { UserService } from '../../services/user.service';
@@ -23,7 +24,7 @@ import {
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, MarkdownToHtmlPipe],
+  imports: [CommonModule, FormsModule, MarkdownToHtmlPipe, BarChartComponent],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
@@ -96,6 +97,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   loadUser(): void {
     this.userService.getUser(this.userId).subscribe({
       next: (user) => {
+        if (user.role === 'teacher') {
+          this.router.navigate(['/profesor']);
+          return;
+        }
         this.user = user;
         this.profileService.loadProfile(this.userId).subscribe();
         this.loadSessions();
@@ -376,9 +381,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   logout(): void {
     this.chatService.closeStream();
-    localStorage.removeItem('tutormind_user_id');
-    localStorage.removeItem('tutormind_session_id');
+    this.userService.clearSession();
     this.router.navigate(['/onboarding']);
+  }
+
+  statusLabel(status: string): string {
+    const map: Record<string, string> = {
+      dominado: 'Dominado',
+      aprendiendo: 'Aprendiendo',
+      con_dificultad: 'Con dificultad',
+      explorando: 'Explorando',
+    };
+    return map[status] || status;
   }
 
   scrollToBottom(): void {

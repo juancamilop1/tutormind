@@ -1,0 +1,21 @@
+<section class="bar-chart">
+  @if (title) {
+    <h4 class="bar-chart__title">{{ title }}</h4>
+  }
+  <div class="bar-chart__list">
+    @for (item of items; track item.label) {
+      <div class="bar-chart__row">
+        <div class="bar-chart__meta">
+          <span class="bar-chart__label">{{ item.label }}</span>
+          <strong class="bar-chart__value">{{ item.value }}</strong>
+        </div>
+        <div class="bar-chart__track">
+          <div
+            class="bar-chart__fill bar-chart__fill--{{ item.tone }}"
+            [style.width.%]="barWidth(item.value)"
+          ></div>
+        </div>
+      </div>
+    }
+  </div>
+</section>
