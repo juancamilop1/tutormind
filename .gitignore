@@ -1,12 +1,43 @@
+# --- Secretos y variables de entorno ---
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
+
+# Claves y credenciales sueltas
+*.pem
+*.key
+*.p12
+credentials.json
+secrets.json
+serviceAccount*.json
+
+# --- Base de datos local ---
 *.db
+*.sqlite
+*.sqlite3
+
+# --- Python ---
 __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Node / Angular ---
 node_modules/
 dist/
 .angular/
+
+# --- Logs ---
 *.log
+
+# --- SO / IDE ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+!.vscode/extensions.json
